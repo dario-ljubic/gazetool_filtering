@@ -3,7 +3,7 @@
 #include "ros/ros.h"
 #include "gazetool/GazeHyps.h"
 #include <iostream>
-#include<queue>
+#include <queue>
 #include <fstream>
 
 class subscribeAndPublish
@@ -29,17 +29,17 @@ private:
     std::queue<int> mutGaze;
     std::queue<int> frame;
     
-    //gazetool::GazeHyps output;
-    
 };
 
-class writeFiltData : public std::ofstream
+class writeFiltData
 {
     
 public:
+    writeFiltData();
     writeFiltData(std::ofstream& fout, const char* path);
     void writeEstHeader(std::ofstream& fout);
     void dumpEst(std::ofstream& fout, gazetool::GazeHyps& filtMsg);
+    void closeFile(std::ofstream& fout);
     ~writeFiltData();
     
 };

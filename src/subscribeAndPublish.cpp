@@ -3,9 +3,9 @@
 subscribeAndPublish::subscribeAndPublish()
 {   
     // publish to a topic
-    pub = n.advertise<gazetool::GazeHyps>("gazeHyps_filtered", 1000); //TODO: check the necessary queue size
+    pub = n.advertise<gazetool::GazeHyps>("gazeHyps_filtered", 100); //TODO: check the necessary queue size
     // name of the topic has to be the same as the name of the topic to which gazetool is publishing unfiltered data
-    sub = n.subscribe("gazeHyps_raw", 1000, &subscribeAndPublish::callback, this); //TODO: check the necessary queue size, currently 5 sec of data is preserved
+    sub = n.subscribe("gazeHyps_raw", 100, &subscribeAndPublish::callback, this); //TODO: check the necessary queue size, currently 5 sec of data is preserved
     
 }
 
@@ -25,6 +25,7 @@ void subscribeAndPublish::callback(const gazetool::GazeHyps& msg)
 
 void subscribeAndPublish::gazeFilter()
 {
+    ros::spinOnce();
     
     float Tpass, Ts; //TODO: add variable fps to the GazeHyps msg so that the average frequency can be used insted of assumed one!
     float b0, b1, a0, a1;
@@ -80,6 +81,8 @@ void subscribeAndPublish::initialize()
 }
 
 //----------------------------------------------------------------------------------------------------------------------//
+writeFiltData::writeFiltData(){
+}
 
 writeFiltData::writeFiltData(std::ofstream& logFile, const char* path)
 {
@@ -106,10 +109,15 @@ void writeFiltData::dumpEst(std::ofstream& fout, gazetool::GazeHyps& filtMsg) {
 //              << msg.lid << "\t"
              << filtMsg.horGaze << "\t"
              << filtMsg.verGaze << "\t"
-             << filtMsg.mutGaze
+             << (int)filtMsg.mutGaze
              << std::endl;
     }
 }
+
+void writeFiltData::closeFile(std::ofstream& fout) {
+    fout.close();
+}
+
 
 writeFiltData::~writeFiltData(){
     
