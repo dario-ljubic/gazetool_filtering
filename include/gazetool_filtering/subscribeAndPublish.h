@@ -1,10 +1,14 @@
 #pragma once
 
-#include "ros/ros.h"
-#include "gazetool/GazeHyps.h"
 #include <iostream>
 #include <queue>
 #include <fstream>
+
+// ros include
+#include "ros/ros.h"
+
+// user packages
+#include "gazetool/GazeHyps.h"
 
 class subscribeAndPublish
 {
@@ -14,6 +18,7 @@ public:
     void callback(const gazetool::GazeHyps& msg);
     void initialize();
     void gazeFilter();
+    void wait();
     
     gazetool::GazeHyps output;
     
@@ -28,6 +33,7 @@ private:
     std::queue<float> horGaze_u;
     std::queue<int> mutGaze;
     std::queue<int> frame;
+    bool hold = false;
     
 };
 

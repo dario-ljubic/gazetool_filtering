@@ -3,9 +3,9 @@
 subscribeAndPublish::subscribeAndPublish()
 {   
     // publish to a topic
-    pub = n.advertise<gazetool::GazeHyps>("gazeHyps_filtered", 100); //TODO: check the necessary queue size
+    pub = n.advertise<gazetool::GazeHyps>("gazeHyps_filtered", 500); //TODO: check the necessary queue size
     // name of the topic has to be the same as the name of the topic to which gazetool is publishing unfiltered data
-    sub = n.subscribe("gazeHyps_raw", 100, &subscribeAndPublish::callback, this); //TODO: check the necessary queue size, currently 5 sec of data is preserved
+    sub = n.subscribe("gazeHyps_raw", 500, &subscribeAndPublish::callback, this); //TODO: check the necessary queue size, currently 5 sec of data is preserved
     
 }
 
@@ -21,11 +21,11 @@ void subscribeAndPublish::callback(const gazetool::GazeHyps& msg)
     
     mutGaze.push(msg.mutGaze);
     frame.push(msg.frame);
+    
 }
 
 void subscribeAndPublish::gazeFilter()
 {
-    ros::spinOnce();
     
     float Tpass, Ts; //TODO: add variable fps to the GazeHyps msg so that the average frequency can be used insted of assumed one!
     float b0, b1, a0, a1;
@@ -39,35 +39,42 @@ void subscribeAndPublish::gazeFilter()
     a0 = 1 + (2*Tpass)/Ts;
     a1 = 1 - (2*Tpass)/Ts;
     
-    output.horGaze = b1/a0 * (float) horGaze_u.front() - a1/a0 * (float) horGaze_y.front();  
-    output.verGaze = b1/a0 * (float) verGaze_u.front() - a1/a0 * (float) verGaze_y.front();
+    // make sure that queues are not empty. If one of the queues is empty, wait until new data arrives or segmentation fault (core dumped) will appear.
+    if (horGaze_u.empty() || verGaze_u.empty() || frame.empty() || mutGaze.empty()) hold = true;
+    else hold = false;
     
-    //TODO: check if there is a need to implement lists instead of queues, because of the error when loop rate 
-    // is higher than 20 hz. In case there is a need for lists, just shift the data, do not pop it.
-    
-    horGaze_u.pop(); 
-    horGaze_y.pop();
-    verGaze_u.pop();
-    verGaze_y.pop();
-    
-    // and add the elements from the current step
-    output.horGaze = output.horGaze + b0/a0 * (float) horGaze_u.front();
-    output.verGaze = output.verGaze + b0/a0 * (float) verGaze_u.front();
-    output.frame = frame.front();
-    output.mutGaze = mutGaze.front();
-    
-    frame.pop();
-    mutGaze.pop();
-    
-    // push new elements on the queue
-    horGaze_y.push(output.horGaze);
-    verGaze_y.push(output.verGaze);
-    
-    pub.publish(output);
+    if (hold){
+        std::cout << "Waiting for more messages!" << std::endl;
+        ros::spinOnce();
+    }
+    else {
+        //std::cout << "Filtering!" << std::endl;
+        output.horGaze = b1/a0 * (float) horGaze_u.front() - a1/a0 * (float) horGaze_y.front(); 
+        output.verGaze = b1/a0 * (float) verGaze_u.front() - a1/a0 * (float) verGaze_y.front();
+        
+        output.frame = frame.front();
+        output.mutGaze = mutGaze.front();
+          
+        horGaze_u.pop(); 
+        horGaze_y.pop();
+        verGaze_u.pop();
+        verGaze_y.pop();
+        frame.pop();
+        mutGaze.pop();
+
+        // and add the elements from the current step
+        output.horGaze = output.horGaze + b0/a0 * (float) horGaze_u.front();
+        output.verGaze = output.verGaze + b0/a0 * (float) verGaze_u.front();
+        
+        // push new elements on the queue
+        horGaze_y.push(output.horGaze);
+        verGaze_y.push(output.verGaze);
+        
+        pub.publish(output);
+    }
 }
 
-void subscribeAndPublish::initialize()
-{
+void subscribeAndPublish::initialize(){
     // initial values t(-1) = 0.
     verGaze_u.push(0);
     verGaze_y.push(0);
@@ -78,6 +85,13 @@ void subscribeAndPublish::initialize()
     output.frame = 0;
 //     output.lid = 0;
     output.mutGaze = false;
+}
+
+void subscribeAndPublish::wait(){
+    ros::Rate poll_rate(100);
+    while(sub.getNumPublishers() == 0)
+        poll_rate.sleep();
+    std::cout << "Connection established!" << std::endl;
 }
 
 //----------------------------------------------------------------------------------------------------------------------//
@@ -117,7 +131,6 @@ void writeFiltData::dumpEst(std::ofstream& fout, gazetool::GazeHyps& filtMsg) {
 void writeFiltData::closeFile(std::ofstream& fout) {
     fout.close();
 }
-
 
 writeFiltData::~writeFiltData(){
     
