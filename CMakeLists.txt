@@ -13,7 +13,7 @@ catkin_package(
 	LIBRARIES gazetool_filtering
 	#LIBRARIES gazetool_filtering
 	CATKIN_DEPENDS roscpp rospy std_msgs
-	DEPENDS system_lib
+	#DEPENDS system_lib
 )
 
 include_directories(

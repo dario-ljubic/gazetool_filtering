@@ -3,21 +3,41 @@
 subscribeAndPublish::subscribeAndPublish()
 {   
     // publish to a topic
-    pub = n.advertise<gazetool::GazeHyps>("gazeHyps_filtered", 500); //TODO: check the necessary queue size
+    pub = n.advertise<gazetool::GazeHyps>("gazeHyps_filtered", 50); //TODO: check the necessary queue size
+    
     // name of the topic has to be the same as the name of the topic to which gazetool is publishing unfiltered data
-    sub = n.subscribe("gazeHyps_raw", 500, &subscribeAndPublish::callback, this); //TODO: check the necessary queue size, currently 5 sec of data is preserved
+    sub = n.subscribe("gazeHyps_raw", 50, &subscribeAndPublish::callback, this); //TODO: check the necessary queue size, currently 2.5 sec of data is preserved
     
 }
 
 void subscribeAndPublish::callback(const gazetool::GazeHyps& msg)
 {   
     // if the incoming data is nan then take last non nan element.
-    //TODO: if there are many consecutative nans, throw an error!
-    if (std::isnan(msg.verGaze)) verGaze_u.push(verGaze_u.front());
-    else verGaze_u.push(msg.verGaze);
+    if (std::isnan(msg.verGaze)) {
+        verGaze_u.push(verGaze_u.front());
+        nanVerNum = nanVerNum + 1;
+        if (nanVerNum > nanLimit) {
+            ROS_ERROR("Too many consecutive nan values arrived for vertical gaze!");
+            ros::shutdown();
+        }
+    }
+    else {
+        verGaze_u.push(msg.verGaze);
+        if (nanVerNum > 0) nanVerNum = nanVerNum - 1;
+    }
     
-    if (std::isnan(msg.horGaze)) horGaze_u.push(verGaze_u.front());
-    else horGaze_u.push(msg.horGaze);
+    if (std::isnan(msg.horGaze)) {
+        horGaze_u.push(horGaze_u.front());
+        nanHorNum = nanHorNum + 1;
+        if (nanHorNum > nanLimit) {
+            ROS_ERROR("Too many consecutive nan values arrived for vertical gaze!");
+            ros::shutdown();
+        }
+    }
+    else {
+        horGaze_u.push(msg.horGaze);
+        if (nanHorNum > 0) nanHorNum = nanHorNum - 1;
+    }
     
     mutGaze.push(msg.mutGaze);
     frame.push(msg.frame);

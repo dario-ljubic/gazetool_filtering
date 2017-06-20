@@ -34,7 +34,9 @@ private:
     std::queue<int> mutGaze;
     std::queue<int> frame;
     bool hold = false;
-    
+    int nanLimit = 50; // approx 2.5 seconds of nan data is allowed
+    int nanHorNum = 0;
+    int nanVerNum = 0;
 };
 
 class writeFiltData

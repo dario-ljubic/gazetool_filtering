@@ -31,7 +31,7 @@ int main(int argc, char **argv){
                 {
                     write = true;
                     path = argv[2];
-                    std::cout << path << std::endl;
+                    //std::cout << path << std::endl;
                     writeObj = writeFiltData(logFile, path);
                     break;
                 }
