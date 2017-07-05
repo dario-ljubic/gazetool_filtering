@@ -10,6 +10,19 @@
 // user packages
 #include "gazetool/GazeHyps.h"
 
+class writeFiltData
+{
+    
+public:
+    writeFiltData();
+    writeFiltData(std::ofstream& fout, const char* path);
+    void writeEstHeader(std::ofstream& fout);
+    void dumpEst(std::ofstream& fout, gazetool::GazeHyps& filtMsg);
+    void closeFile(std::ofstream& fout);
+    ~writeFiltData();
+    
+};
+
 class subscribeAndPublish
 {
     
@@ -19,6 +32,8 @@ public:
     void initialize();
     void gazeFilter();
     void wait();
+    void run(bool write, const char* path);
+    //void run();
     
     gazetool::GazeHyps output;
     
@@ -37,17 +52,9 @@ private:
     int nanLimit = 50; // approx 2.5 seconds of nan data is allowed
     int nanHorNum = 0;
     int nanVerNum = 0;
-};
-
-class writeFiltData
-{
     
-public:
-    writeFiltData();
-    writeFiltData(std::ofstream& fout, const char* path);
-    void writeEstHeader(std::ofstream& fout);
-    void dumpEst(std::ofstream& fout, gazetool::GazeHyps& filtMsg);
-    void closeFile(std::ofstream& fout);
-    ~writeFiltData();
-    
+    // write to file
+    bool writeToFile = false;
+    std::ofstream logFile;
+    writeFiltData writeObj;
 };

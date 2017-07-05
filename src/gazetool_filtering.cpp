@@ -11,7 +11,7 @@ int main(int argc, char **argv){
     
     bool write;
     char *path;
-    writeFiltData writeObj;
+    //writeFiltData writeObj;
     char option;
      
     if (argc == 1) write = false;
@@ -32,7 +32,7 @@ int main(int argc, char **argv){
                     write = true;
                     path = argv[2];
                     //std::cout << path << std::endl;
-                    writeObj = writeFiltData(logFile, path);
+                    //writeObj = writeFiltData(logFile, path);
                     break;
                 }
                 //TODO: Add more options if needed
@@ -48,22 +48,8 @@ int main(int argc, char **argv){
     ros::init(argc, argv, "gazetool_filter");
     
     subscribeAndPublish filterObj;
-    filterObj.initialize();
     
-    filterObj.wait(); // wait untill connection between this subscriber node and gazetool is established!
-    
-    ros::Rate r(20); //TODO: check the rate in which whis this while loop will execute
-    
-    while (ros::ok()){
-        
-        filterObj.gazeFilter();
-        
-        if (write) writeObj.dumpEst(logFile, filterObj.output);
-
-        r.sleep();
-    }
-    
-    if (write) writeObj.closeFile(logFile);
+    filterObj.run(write, path);
     
     return 0;
 }
