@@ -1,10 +1,5 @@
 #include <gazetool_filtering/subscribeAndPublish.h>
 
-//WARNING Sometimes, when running the node, segmentation fault (core dumped) appears due to
-// still unknown reason/s. It is presumed that the implementation with queues is causing the
-// problem.
-// EDIT: It seems that the problem is fixed, but more testing is needed to be sure!
-
 int main(int argc, char **argv){
     
     std::ofstream logFile;
@@ -52,7 +47,7 @@ int main(int argc, char **argv){
     
     filterObj.wait(); // wait untill connection between this subscriber node and gazetool is established!
     
-    ros::Rate r(20); //TODO: check the rate in which whis this while loop will execute
+    ros::Rate r(30);
     
     while (ros::ok()){
         

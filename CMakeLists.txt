@@ -26,7 +26,19 @@ add_dependencies(subscribeAndPublish ${catkin_EXPORTED_TARGETS})
 target_link_libraries(subscribeAndPublish ${catkin_LIBRARIES})
 
 add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}.cpp)
+
 add_dependencies(subscribeAndPublish ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}_node subscribeAndPublish
+   ${catkin_LIBRARIES}
+)
+
+add_library( RLS_nan_filtering src/RLS_nan_filtering.cpp )
+add_dependencies(RLS_nan_filtering ${catkin_EXPORTED_TARGETS})
+target_link_libraries(RLS_nan_filtering ${catkin_LIBRARIES})
+
+add_executable(RLS_nan_filtering_node src/RLS_nan_filtering.cpp)
+
+add_dependencies(RLS_nan_filtering ${catkin_EXPORTED_TARGETS})
+target_link_libraries(RLS_nan_filtering_node RLS_nan_filtering
    ${catkin_LIBRARIES}
 )

@@ -3,9 +3,10 @@
 subscribeAndPublish::subscribeAndPublish()
 {   
     // publish to a topic
-    pub = n.advertise<gazetool::GazeHyps>("gazeHyps_filtered", 500); //TODO: check the necessary queue size
+    pub = n.advertise<gazetool::GazeHyps>("gazeHyps_filtered", 1);
+    
     // name of the topic has to be the same as the name of the topic to which gazetool is publishing unfiltered data
-    sub = n.subscribe("gazeHyps_raw", 500, &subscribeAndPublish::callback, this); //TODO: check the necessary queue size, currently 5 sec of data is preserved
+    sub = n.subscribe("gazeHyps_raw", 1, &subscribeAndPublish::callback, this);
     
 }
 
@@ -31,7 +32,7 @@ void subscribeAndPublish::gazeFilter()
     float b0, b1, a0, a1;
     
     Tpass = 0.6; // filter parameter, change for different pass frequencies!
-    Ts = 1./20; // sampling time, under assumption that gazetool is providing 20 fps
+    Ts = 1./30; // sampling time, 1/n under assumption that gazetool is providing n fps
     
     // based on the transfer function given in the README.md, coefficients are as follows:
     b0 = 1;
